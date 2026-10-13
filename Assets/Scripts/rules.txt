@@ -1,0 +1,9 @@
+AXIOM: n
+n: p d3
+p: e
+d3: D d2
+d2: D d1
+d1: D
+D: M
+M: N
+N: P[1][1]
