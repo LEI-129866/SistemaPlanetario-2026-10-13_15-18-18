@@ -8,6 +8,7 @@ public class LSystemTester : MonoBehaviour
     {
         var (axiom, rules) = GetRules.GetRule("rules.txt");
         engine = new LSystemEngine(axiom, rules);
+        
 
         Debug.Log($"<b>Passo 0 (Axioma):</b> {engine.GetFormattedWord(engine.GetCurrentWord())}");
 
