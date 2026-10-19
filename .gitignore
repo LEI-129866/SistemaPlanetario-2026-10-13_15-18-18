@@ -114,3 +114,5 @@ InitTestScene*.unity*
 /[Aa]ssets/[Ss]ceneDependencyCache*
 Assets/Settings/DefaultVolumeProfile.asset
 ProjectSettings/VersionControlSettings.asset
+.DS_Store
+Assets/.DS_Store
