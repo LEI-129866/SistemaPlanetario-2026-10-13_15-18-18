@@ -115,6 +115,11 @@ InitTestScene*.unity*
 Assets/Settings/DefaultVolumeProfile.asset
 ProjectSettings/VersionControlSettings.asset
 .DS_Store
+<<<<<<< Updated upstream
 .DS_Store
 Assets/.DS_Store
+=======
+>>>>>>> Stashed changes
+Assets/.DS_Store
+.DS_Store
 Assets/.DS_Store
