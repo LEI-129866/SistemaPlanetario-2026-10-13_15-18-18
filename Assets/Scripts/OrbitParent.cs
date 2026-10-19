@@ -28,6 +28,7 @@ public class OrbitParent : MonoBehaviour
     void Start()
     {
         parent = this.transform.parent.gameObject;
+        radius = Vector3.Distance(transform.position, parent.transform.position);
 
         if (randomizeBegginingValue) {
             currentState = Random.Range(0f, 2 * PI);
