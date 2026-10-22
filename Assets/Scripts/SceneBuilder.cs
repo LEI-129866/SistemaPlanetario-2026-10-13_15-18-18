@@ -3,11 +3,10 @@ using UnityEngine;
 
 public class SceneBuilder : MonoBehaviour
 {
-    [Header("Configurações das Órbitas")]
-    [Tooltip("Incremento da distância (raio) entre cada órbita planetária.")]
+    
     [SerializeField] private float orbitRadiusStep = 5f;
 
-    [Header("Prefabs dos Elementos Visuais (Tabela 4)")]
+    [Header("Prefabs dos Elementos Visuais")]
     [SerializeField] private GameObject cloudPrefab;        // n: Nuvem difusa (Particle System)
     [SerializeField] private GameObject protoStarPrefab;    // p: Proto-estrela
     [SerializeField] private GameObject starPrefab;         // e: Estrela madura
@@ -18,16 +17,10 @@ public class SceneBuilder : MonoBehaviour
     [SerializeField] private GameObject planetPrefab;         // P: Planeta formado
     [SerializeField] private GameObject moonPrefab;           // 1: Lua
 
-    [Header("Contentor Pai")]
-    [Tooltip("Objeto onde todos os elementos instanciados vão ser organizados.")]
-    [SerializeField] private Transform systemParent;
-
     // Guarda as referências dos objetos instanciados para podermos limpar ao mudar de passo
     private List<GameObject> spawnedObjects = new List<GameObject>();
 
-    /// <summary>
-    /// Limpa a cena anterior e constrói a nova cena 3D com base na palavra atual do L-System.
-    /// </summary>
+    // Limpa a cena anterior e constrói a nova cena 3D com base na palavra atual do L-System.
     public void BuildScene(List<Symbol> word)
     {
         ClearScene();
@@ -35,84 +28,84 @@ public class SceneBuilder : MonoBehaviour
         if (word == null || word.Count == 0) return;
 
         // Se não houver um contentor pai atribuído, usa o próprio Transform deste GameObject
-        Transform parentTransform = systemParent != null ? systemParent : transform;
+        Transform parentTransform = transform;
 
-        // Pilha LIFO para gestão de ramificações (Tópico 2.3.2)[cite: 51]
+        // Pilha LIFO para gestão de ramificações 
         Stack<Transform> branchStack = new Stack<Transform>();
 
-        // Índice para calcular o raio das órbitas (r1 = 1*step, r2 = 2*step, etc.)[cite: 51]
+        // Índice para calcular o raio das órbitas
         int planetOrbitIndex = 1;
 
-        // Referência ao último corpo planetário criado no nível principal[cite: 49]
+        // Referência ao último corpo planetário criado no nível principal
         Transform currentBodyParent = parentTransform;
 
-        // 1. PRIMEIRA PASSAGEM: Calcular o raio máximo para ajustar a dimensão da Nuvem 'n'[cite: 51]
+        // Calcular o raio máximo para ajustar a dimensão da Nuvem 'n'
         int totalPlanets = CountPlanetaryOrbits(word);
         float maxRadius = totalPlanets * orbitRadiusStep;
 
-        // 2. SEGUNDA PASSAGEM: Instanciar e posicionar os objetos na cena
+        // Instanciar e posicionar os objetos na cena
         foreach (Symbol symbol in word)
         {
             switch (symbol.Id)
             {
                 case "n":
-                    // Nuvem de gás e poeira[cite: 49]
+                    // Nuvem de gás e poeira
                     SpawnCloud(parentTransform, maxRadius);
                     break;
 
                 case "p":
-                    // Proto-estrela no centro do sistema[cite: 49, 51]
+                    // Proto-estrela no centro do sistema
                     currentBodyParent = SpawnObject(protoStarPrefab, parentTransform, Vector3.zero).transform;
                     break;
 
                 case "e":
-                    // Estrela madura no centro do sistema[cite: 49, 51]
+                    // Estrela madura no centro do sistema
                     currentBodyParent = SpawnObject(starPrefab, parentTransform, Vector3.zero).transform;
                     break;
 
                 case "d":
-                    // Disco protoplanetário (d3, d2, d1)[cite: 49, 51]
+                    // Disco protoplanetário (d3, d2, d1)
                     SpawnProtoDisk(parentTransform, symbol.Parameter);
                     break;
 
                 case "D":
-                    // Anel planetário na órbita de raio r_i[cite: 49, 51]
+                    // Anel planetário na órbita de raio r_i
                     float ringRadius = planetOrbitIndex * orbitRadiusStep;
                     currentBodyParent = SpawnRing(parentTransform, ringRadius).transform;
                     planetOrbitIndex++;
                     break;
 
                 case "m":
-                    // Planetesimal na órbita de raio r_i[cite: 49, 51]
+                    // Planetesimal na órbita de raio r_i
                     currentBodyParent = SpawnOrbitingBody(planetesimalPrefab, parentTransform, planetOrbitIndex * orbitRadiusStep).transform;
                     planetOrbitIndex++;
                     break;
 
                 case "N":
-                    // Proto-planeta na órbita de raio r_i[cite: 49, 51]
+                    // Proto-planeta na órbita de raio r_i
                     currentBodyParent = SpawnOrbitingBody(protoPlanetPrefab, parentTransform, planetOrbitIndex * orbitRadiusStep).transform;
                     planetOrbitIndex++;
                     break;
 
                 case "P":
-                    // Planeta na órbita de raio r_i[cite: 49, 51]
+                    // Planeta na órbita de raio r_i
                     currentBodyParent = SpawnOrbitingBody(planetPrefab, parentTransform, planetOrbitIndex * orbitRadiusStep).transform;
                     planetOrbitIndex++;
                     break;
 
                 case "1":
-                    // Lua: orbitando o corpo imediatamente anterior que iniciou o ramo[cite: 49, 50, 51]
+                    // Lua: orbita o corpo imediatamente anterior que iniciou o ramo
                     Transform moonParent = (branchStack.Count > 0) ? branchStack.Peek() : currentBodyParent;
                     SpawnMoon(moonParent);
                     break;
 
                 case "[":
-                    // Início de Ramo: Empilha o corpo atual[cite: 50, 51]
+                    // Início de Ramo: Empilha o corpo atual
                     branchStack.Push(currentBodyParent);
                     break;
 
                 case "]":
-                    // Fim de Ramo: Restaura o contexto anterior[cite: 50, 51]
+                    // Fim de Ramo: Restaura o contexto anterior
                     if (branchStack.Count > 0)
                     {
                         branchStack.Pop();
@@ -122,9 +115,7 @@ public class SceneBuilder : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Destrói todos os GameObjects criados no passo anterior[cite: 51].
-    /// </summary>
+    // Destrói todos os GameObjects criados no passo anterior
     public void ClearScene()
     {
         foreach (GameObject obj in spawnedObjects)
