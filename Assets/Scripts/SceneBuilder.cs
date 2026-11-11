@@ -160,8 +160,8 @@ public class SceneBuilder : MonoBehaviour
         }
         else
         {
-            float scale = Mathf.Max(maxRadius * 2f, 10f);
-            cloud.transform.localScale = new Vector3(scale, scale, scale);
+            //float scale = Mathf.Max(maxRadius * 2f, 10f);
+            //cloud.transform.localScale = new Vector3(scale, scale, scale);
         }
 
         spawnedObjects.Add(cloud);
@@ -174,8 +174,10 @@ public class SceneBuilder : MonoBehaviour
         GameObject disk = Instantiate(protoDiskPrefab, parent);
         disk.transform.localPosition = Vector3.zero;
 
-        float scaleMultiplier = parameter * orbitRadiusStep;
-        disk.transform.localScale = new Vector3(scaleMultiplier, 1f, scaleMultiplier);
+        float scaleMultiplier = 1 - ((3 - parameter) * 0.1f);
+        disk.transform.localScale = new Vector3(disk.transform.localScale.x * scaleMultiplier,
+                                                disk.transform.localScale.y,
+                                                disk.transform.localScale.z * scaleMultiplier);
 
         spawnedObjects.Add(disk);
     }
@@ -185,8 +187,8 @@ public class SceneBuilder : MonoBehaviour
         if (ringPrefab == null) return parent.gameObject;
 
         GameObject ring = Instantiate(ringPrefab, parent);
-        ring.transform.localPosition = Vector3.zero;
-        ring.transform.localScale = new Vector3(radius * 2f, 1f, radius * 2f);
+        //ring.transform.localPosition = Vector3.zero;
+        //ring.transform.localScale = new Vector3(radius * 2f, 1f, radius * 2f);
 
         spawnedObjects.Add(ring);
         return ring;
