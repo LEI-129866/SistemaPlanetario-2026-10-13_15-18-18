@@ -72,14 +72,23 @@ public class GetRules
 
     private static Symbol ParseSingleSymbol(string token)
     {
-        // Se o token for do tipo "d3", separa o ID ('d') do parâmetro (3)
-        if (token.Length > 1 && char.IsLetter(token[0]) && char.IsDigit(token[token.Length - 1]))
-        {
-            string id = token.Substring(0, token.Length - 1);
-            int param = int.Parse(token[token.Length - 1].ToString());
+        // // Se o token for do tipo "d3", separa o ID ('d') do parâmetro (3)
+        // if (token.Length > 1 && char.IsLetter(token[0]) && char.IsDigit(token[token.Length - 1]))
+        // {
+        //     string id = token.Substring(0, token.Length - 1);
+        //     int param = int.Parse(token[token.Length - 1].ToString());
+        //     return new Symbol(id, param);
+        // }
+
+        // return new Symbol(token);
+
+        // meti isto com Match e REgex
+        Match match = Regex.Match(token, @"^([a-zA-Z]+)(\d+)$");
+        if (match.Success){
+            string id = match.Groups[1].Value;
+            int param = int.Parse(match.Groups[2].Value);
             return new Symbol(id, param);
         }
-
         return new Symbol(token);
     }
 }

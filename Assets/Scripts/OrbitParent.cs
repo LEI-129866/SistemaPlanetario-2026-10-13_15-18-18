@@ -61,4 +61,14 @@ public class OrbitParent : MonoBehaviour
 
         //Debug.Log(currentState);
     }
+
+    public void SetRadius(float newRadius)
+    {
+        this.radius = newRadius;
+    }
+
+    public void SetSpeed(float newSpeed)
+    {
+        this.orbitSpeed = newSpeed;
+    }
 }

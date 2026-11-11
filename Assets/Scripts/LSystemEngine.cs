@@ -21,6 +21,13 @@ public class LSystemEngine
 
     public void DeriveNext()
     {
+        // se o passo seguinte já está no histórico
+        // apenas avançamos o índice do passo atual sem recriar ou duplicar palavras
+        if (CurrentStep < history.Count - 1){
+            CurrentStep++;
+            return;
+        }
+
         if (IsFinished) return;
 
         List<Symbol> currentWord = GetCurrentWord();
