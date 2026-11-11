@@ -199,7 +199,17 @@ public class SceneBuilder : MonoBehaviour
         if (prefab == null) return parent.gameObject;
 
         GameObject body = Instantiate(prefab, parent);
-        body.transform.localPosition = new Vector3(radius, 0f, 0f);
+
+        // tentar corrigir erros do raio - ajustar OrbitParent se ele existir no Prefab
+        OrbitParent orbitComp = body.GetComponent<OrbitParent>();
+        if (orbitComp != null){
+            orbitComp.SetRadius(radius); // setRadius é método no OrbitParent
+        }
+
+        else
+        {
+          body.transform.localPosition = new Vector3(radius, 0f, 0f);  
+        }
 
         spawnedObjects.Add(body);
         return body;
