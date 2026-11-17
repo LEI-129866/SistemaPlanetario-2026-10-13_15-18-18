@@ -5,6 +5,7 @@ public class SceneBuilder : MonoBehaviour
 {
     
     [SerializeField] private float orbitRadiusStep = 5f;
+    [SerializeField] private float currentOrbitSpeed = 4f;
 
     [Header("Prefabs dos Elementos Visuais")]
     [SerializeField] private GameObject cloudPrefab;        // n: Nuvem difusa (Particle System)
@@ -75,7 +76,7 @@ public class SceneBuilder : MonoBehaviour
                     planetOrbitIndex++;
                     break;
 
-                case "m":
+                case "M":
                     // Planetesimal na órbita de raio r_i
                     currentBodyParent = SpawnOrbitingBody(planetesimalPrefab, parentTransform, planetOrbitIndex * orbitRadiusStep).transform;
                     planetOrbitIndex++;
@@ -131,6 +132,22 @@ public class SceneBuilder : MonoBehaviour
     public void SetOrbitRadiusStep(float newStep)
     {
         orbitRadiusStep = newStep;
+    }
+
+    public void SetOrbitSpeed(float newSpeed)
+    {
+        currentOrbitSpeed = newSpeed;
+        foreach (GameObject obj in spawnedObjects)
+        {
+            if (obj != null)
+            {
+                OrbitParent[] orbits = obj.GetComponentsInChildren<OrbitParent>();
+                foreach (OrbitParent orbit in orbits)
+                {
+                    orbit.SetSpeed(currentOrbitSpeed);
+                }
+            }
+        }
     }
 
     #region Métodos Auxiliares de Instanciação
@@ -215,13 +232,41 @@ public class SceneBuilder : MonoBehaviour
         return body;
     }
 
+    // private void SpawnMoon(Transform parentBody)
+    // {
+    //     if (moonPrefab == null || parentBody == null) return;
+
+    //     GameObject moon = Instantiate(moonPrefab, parentBody);
+    //     float moonOffset = 1.5f;
+    //     moon.transform.localPosition = new Vector3(moonOffset, 0f, 0f);
+
+    //     spawnedObjects.Add(moon);
+    // }
+
     private void SpawnMoon(Transform parentBody)
     {
         if (moonPrefab == null || parentBody == null) return;
 
         GameObject moon = Instantiate(moonPrefab, parentBody);
-        float moonOffset = 1.5f;
-        moon.transform.localPosition = new Vector3(moonOffset, 0f, 0f);
+
+        // garante que a Lua é sempre mais pequena que o planeta pai (ex: 30% do tamanho do planeta)
+        moon.transform.localScale = Vector3.one * 0.3f;
+
+        // define a distância (raio) da Lua ao planeta
+        // (Se o planeta já tiver mais luas, afasta ligeiramente a segunda para não colidirem)
+        int existingMoons = parentBody.childCount - 1; 
+        float moonRadius = 1.8f + (existingMoons * 0.8f);
+
+        // configura o OrbitParent se existir no Prefab da Lua, caso contrário posiciona manualmente
+        OrbitParent orbitComp = moon.GetComponent<OrbitParent>();
+        if (orbitComp != null)
+        {
+            orbitComp.SetRadius(moonRadius);
+        }
+        else
+        {
+            moon.transform.localPosition = new Vector3(moonRadius, 0f, 0f);
+        }
 
         spawnedObjects.Add(moon);
     }
