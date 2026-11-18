@@ -22,6 +22,7 @@ public class SceneBuilder : MonoBehaviour
     
     // Guarda as referências dos objetos instanciados para podermos limpar ao mudar de passo
     private List<GameObject> spawnedObjects = new List<GameObject>();
+    private List<OrbitParent> planetaryOrbits = new List<OrbitParent>();
 
     // Limpa a cena anterior e constrói a nova cena 3D com base na palavra atual do L-System.
     public void BuildScene(List<Symbol> word)
@@ -129,11 +130,21 @@ public class SceneBuilder : MonoBehaviour
             }
         }
         spawnedObjects.Clear();
+        planetaryOrbits.Clear();
     }
 
     public void SetOrbitRadiusStep(float newStep)
     {
         orbitRadiusStep = newStep;
+
+        // atualiza o raio dos planetas existentes em tempo real sem destruir/reiniciar a órbita
+        for (int i = 0; i < planetaryOrbits.Count; i++)
+        {
+            if (planetaryOrbits[i] != null)
+            {
+                planetaryOrbits[i].SetRadius((i + 1) * orbitRadiusStep);
+            }
+        }
     }
 
     public void SetOrbitSpeed(float newSpeed)
@@ -143,8 +154,8 @@ public class SceneBuilder : MonoBehaviour
         {
             if (obj != null)
             {
-                OrbitParent[] orbits = obj.GetComponentsInChildren<OrbitParent>();
-                foreach (OrbitParent orbit in orbits)
+                OrbitParent orbit = obj.GetComponent<OrbitParent>();
+                if (orbit != null)
                 {
                     orbit.SetSpeed(currentOrbitSpeed);
                 }
@@ -223,6 +234,8 @@ public class SceneBuilder : MonoBehaviour
         OrbitParent orbitComp = body.GetComponent<OrbitParent>();
         if (orbitComp != null){
             orbitComp.SetRadius(radius); // setRadius é método no OrbitParent
+            orbitComp.SetSpeed(currentOrbitSpeed); // aplica a velocidade atual do slider
+            planetaryOrbits.Add(orbitComp);        // regista para atualização suave do raio
         }
 
         else
@@ -233,17 +246,6 @@ public class SceneBuilder : MonoBehaviour
         spawnedObjects.Add(body);
         return body;
     }
-
-    // private void SpawnMoon(Transform parentBody)
-    // {
-    //     if (moonPrefab == null || parentBody == null) return;
-
-    //     GameObject moon = Instantiate(moonPrefab, parentBody);
-    //     float moonOffset = 1.5f;
-    //     moon.transform.localPosition = new Vector3(moonOffset, 0f, 0f);
-
-    //     spawnedObjects.Add(moon);
-    // }
 
     private void SpawnMoon(Transform parentBody)
     {
@@ -264,6 +266,7 @@ public class SceneBuilder : MonoBehaviour
         if (orbitComp != null)
         {
             orbitComp.SetRadius(moonRadius);
+            orbitComp.SetSpeed(currentOrbitSpeed); // aplica a velocidade atual do slider
         }
         else
         {
@@ -278,7 +281,7 @@ public class SceneBuilder : MonoBehaviour
         int count = 0;
         foreach (Symbol s in word)
         {
-            if (s.Id == "D" || s.Id == "m" || s.Id == "N" || s.Id == "P")
+            if (s.Id == "D" || s.Id == "M" || s.Id == "N" || s.Id == "P")
             {
                 count++;
             }

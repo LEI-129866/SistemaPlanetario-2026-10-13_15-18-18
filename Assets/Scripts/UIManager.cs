@@ -28,9 +28,9 @@ public class UIManager : MonoBehaviour
         // Configuração inicial dos Sliders
         if (orbitRadiusSlider != null)
         {
-            orbitRadiusSlider.minValue = 2f;
-            orbitRadiusSlider.maxValue = 15f;
-            orbitRadiusSlider.value = 5f;
+            orbitRadiusSlider.minValue = 3.5f; // Mínimo seguro para não entrar dentro da estrela
+            orbitRadiusSlider.maxValue = 8.0f; // Máximo visível na câmara até ao 3º planeta (3 * 8 = 24)
+            orbitRadiusSlider.value = 5.0f;
             orbitRadiusSlider.onValueChanged.AddListener(OnOrbitRadiusChanged);
 
             // atualiza o texto logo no início com o valor padrão (5.0)
@@ -138,10 +138,11 @@ public class UIManager : MonoBehaviour
         {
             sceneBuilder.SetOrbitRadiusStep(value);
             // reconstrói a cena com o novo raio sem mudar de passo
-            if (lSystemTester.Engine != null)
-            {
-                sceneBuilder.BuildScene(lSystemTester.Engine.GetCurrentWord());
-            }
+            //if (lSystemTester.Engine != null)
+            //{
+                //sceneBuilder.BuildScene(lSystemTester.Engine.GetCurrentWord());
+                
+            //}
         }
     }
 
