@@ -18,6 +18,8 @@ public class SceneBuilder : MonoBehaviour
     [SerializeField] private GameObject planetPrefab;         // P: Planeta formado
     [SerializeField] private GameObject moonPrefab;           // 1: Lua
 
+    [SerializeField] private GameObject systemOrigin;
+    
     // Guarda as referências dos objetos instanciados para podermos limpar ao mudar de passo
     private List<GameObject> spawnedObjects = new List<GameObject>();
     private List<OrbitParent> planetaryOrbits = new List<OrbitParent>();
@@ -30,7 +32,7 @@ public class SceneBuilder : MonoBehaviour
         if (word == null || word.Count == 0) return;
 
         // Se não houver um contentor pai atribuído, usa o próprio Transform deste GameObject
-        Transform parentTransform = transform;
+        Transform parentTransform = systemOrigin != null ? systemOrigin.transform : transform;
 
         // Pilha LIFO para gestão de ramificações 
         Stack<Transform> branchStack = new Stack<Transform>();
