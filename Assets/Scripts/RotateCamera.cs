@@ -9,6 +9,7 @@ public class RotateCamera : MonoBehaviour
     [SerializeField] private float zoomSpeed = 15f;
     [SerializeField] private float minDist = 5f;
     [SerializeField] private float maxDist = 100f;
+    
 
     private float yaw;
     private float pitch = 30f;
