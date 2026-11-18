@@ -39,10 +39,10 @@ public class LSystemTester : MonoBehaviour
             }
         }
 
-        // Atalhos de teclado (opcional)
+        // Atalhos de teclado
         if (Keyboard.current == null) return;
-        if (Keyboard.current.rightArrowKey.wasPressedThisFrame || Keyboard.current.dKey.wasPressedThisFrame) AdvanceStep();
-        if (Keyboard.current.leftArrowKey.wasPressedThisFrame || Keyboard.current.aKey.wasPressedThisFrame) PreviousStep();
+        if (Keyboard.current.rightArrowKey.wasPressedThisFrame/* || Keyboard.current.dKey.wasPressedThisFrame*/) AdvanceStep();
+        if (Keyboard.current.leftArrowKey.wasPressedThisFrame/* || Keyboard.current.aKey.wasPressedThisFrame*/) PreviousStep();
     }
 
     public void AdvanceStep()
