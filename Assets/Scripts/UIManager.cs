@@ -25,23 +25,19 @@ public class UIManager : MonoBehaviour
 
     void Start()
     {
-        // Configuração inicial dos Sliders
+        // Configuração inicial dos limites, valores por defeito e listeners dos Sliders
         if (orbitRadiusSlider != null)
         {
-            orbitRadiusSlider.minValue = 3.5f; // Mínimo seguro para não entrar dentro da estrela
-            orbitRadiusSlider.maxValue = 8.0f; // Máximo visível na câmara até ao 3º planeta (3 * 8 = 24)
+            orbitRadiusSlider.minValue = 4.0f; // Mínimo seguro para não entrar dentro da estrela
+            orbitRadiusSlider.maxValue = 8.0f; 
             orbitRadiusSlider.value = 5.0f;
             orbitRadiusSlider.onValueChanged.AddListener(OnOrbitRadiusChanged);
-
-            // atualiza o texto logo no início com o valor padrão (5.0)
-            if (orbitRadiusText != null)
-                orbitRadiusText.text = $"raio órbita (r): {orbitRadiusSlider.value:F1}";
         }
 
         if (speedSlider != null)
         {
-            speedSlider.minValue = 0.5f; // Rápido (0.5s entre passos)
-            speedSlider.maxValue = 8.0f; // Lento (4s entre passos)
+            speedSlider.minValue = 0.5f; 
+            speedSlider.maxValue = 8.0f; 
             speedSlider.value = 4.0f;
             speedSlider.onValueChanged.AddListener(OnSpeedChanged);
         }
@@ -54,13 +50,14 @@ public class UIManager : MonoBehaviour
         UpdateUI();
     }
 
+    // sincroniza os textos do ecrã e o estado dos botões com o estado atual do L-System
     private void UpdateUI()
     {
         if (lSystemTester == null || lSystemTester.Engine == null) return;
 
         bool isFinished = lSystemTester.Engine.IsFinished || lSystemTester.Engine.CurrentStep >= 7;
 
-        // atualiza o texto do passo e indica claramente quando terminou
+        // atualiza o número do passo atual e indica quando a evolução terminou
         if (stepText != null)
         {
             if (isFinished)
@@ -69,13 +66,13 @@ public class UIManager : MonoBehaviour
                 stepText.text = $"Passo: {lSystemTester.Engine.CurrentStep}";
         }
 
-        // desativa o botão de avanço no fim da evolução
+        // desativa o botão de avanço ao atingir o fim da evolução
         if (nextButton != null)
         {
             nextButton.interactable = !isFinished;
         }
 
-        // atualiza a palavra e o texto do botão Play/Pause
+        // atualiza a palavra derivada do L-System
         if (wordText != null)
         {
             var word = lSystemTester.Engine.GetCurrentWord();
@@ -86,8 +83,9 @@ public class UIManager : MonoBehaviour
             playPauseButtonText.text = lSystemTester.IsPlaying ? "Pause" : "Play";
     }
 
-    // --- Métodos chamados pelos Botões ---
+    // --- Métodos chamados pelos Botões --- //
 
+    // pausa o Auto-Play e avança manualmente um passo
     public void OnClickNext()
     {
         lSystemTester.Pause();
@@ -95,6 +93,7 @@ public class UIManager : MonoBehaviour
         ClearButtonSelection();
     }
 
+    // pausa o Auto-Play e recua manualmente um passo
     public void OnClickPrevious()
     {
         lSystemTester.Pause();
@@ -102,12 +101,14 @@ public class UIManager : MonoBehaviour
         ClearButtonSelection();
     }
 
+    // alterna entre execução automática e pausa
     public void OnClickPlayPause()
     {
         lSystemTester.TogglePlayPause();
         ClearButtonSelection();
     }
 
+    // reinicia o L-System para o passo 0 mantendo o raio orbital definido no slider
     public void OnClickReset()
     {
         // aplica o valor de r definido no slider antes de reiniciar
@@ -119,7 +120,7 @@ public class UIManager : MonoBehaviour
         ClearButtonSelection();
     }
 
-    // --- Métodos chamados pelos Sliders ---
+    // remove o foco do botão clicado
     private void ClearButtonSelection()
     {
         if (EventSystem.current != null)
@@ -128,36 +129,30 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    // --- Métodos chamados pelos Sliders --- //
+
+    // atualiza o espaçamento radial (r) das órbitas na cena 3D
     private void OnOrbitRadiusChanged(float value)
     {
-        // atualiza o texto com o novo valor de r (com 1 casa decimal)
-        if (orbitRadiusText != null)
-            orbitRadiusText.text = $"raio órbita (r): {value:F1}";
-
         if (sceneBuilder != null)
         {
             sceneBuilder.SetOrbitRadiusStep(value);
-            // reconstrói a cena com o novo raio sem mudar de passo
-            //if (lSystemTester.Engine != null)
-            //{
-                //sceneBuilder.BuildScene(lSystemTester.Engine.GetCurrentWord());
-                
-            //}
         }
     }
 
+    // ajusta em simultâneo a velocidade orbital 3D e o ritmo de avanço do Auto-Play
     private void OnSpeedChanged(float value)
     {
-        // atualiza a velocidade das órbitas 3D em tempo real
+        // ajusta velocidade das órbitas 3D em tempo real
         if (sceneBuilder != null)
         {
             sceneBuilder.SetOrbitSpeed(value);
         }
 
-        // atualiza a velocidade do Auto-Play (quanto maior o valor, menor o tempo de espera)
+        // quanto maior o valor da velocidade, menor o tempo de espera
         if (lSystemTester != null)
         {
-            float interval = 4.0f / value; //4.0 dá 1s por passo; a 8.0 dá 0.5s; a 0.5 dá 8s
+            float interval = 4.0f / value; // 4.0 -> 1s/passo; 8.0 -> 0.5s/passo; 0.5 -> 8s/passo
             lSystemTester.SetAutoPlaySpeed(interval);
         }
     }    
