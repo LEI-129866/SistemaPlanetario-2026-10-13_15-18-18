@@ -3,33 +3,24 @@ using UnityEngine;
 
 public class OrbitParent : MonoBehaviour
 {
-    [SerializeField]
-    private float radius = 5;
-
-    [SerializeField]
-    private float orbitSpeed = 4;
-
-    [SerializeField]
-    private bool randomizeBegginingValue = false;
-
-    [SerializeField]
-    private bool useYValue = false;
-
-    [SerializeField]
-    private float yValueMultiplier = 3f;
+    [SerializeField] private float radius = 5;
+    [SerializeField] private float orbitSpeed = 4;
+    [SerializeField] private bool randomizeBegginingValue = false;
+    [SerializeField] private bool useYValue = false;
+    [SerializeField] private float yValueMultiplier = 3f;
 
     private float PI = Mathf.PI;
-    private GameObject parent;
-    private float currentState = 0;
+    private float currentState = 0; // angulo atual da órbita em [0, 2π]
     private bool switchYCos = false;
     private float radiusOffset = 0f;
+    private GameObject parent;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    // função chamada uma vez antes da Update() depois de ser criado o MonoBehaviour
     void Start()
     {
         parent = this.transform.parent.gameObject;
-        //radius = Vector3.Distance(transform.position, parent.transform.position);
-
+        
+        // aplica variações aleatórias à posição inicial, inclinação e raio da órbita
         if (randomizeBegginingValue) {
             currentState = Random.Range(0f, 2 * PI);
             float yValueOffset = Random.Range(0, radius / 4) - radius / 2;
@@ -40,16 +31,19 @@ public class OrbitParent : MonoBehaviour
 
     }
 
-    // Update is called once per frame
+    // função chamada uma vez por frame
     void Update()
     {
+        // incrementa o ângulo orbital de forma independente da taxa de frames (FPS)
         currentState += orbitSpeed * Time.deltaTime;
         currentState = currentState % (2 * PI);
 
+        // calcula a nova posição circular no plano XZ em torno da posição global do pai
         float x = parent.transform.position.x + (radius + radiusOffset) * Mathf.Cos(currentState);
         float y = transform.position.y;
         float z = parent.transform.position.z + (radius + radiusOffset) * Mathf.Sin(currentState);
 
+        // adiciona oscilação vertical (eixo Y) para órbitas inclinadas
         if (useYValue) {
             if (switchYCos)
                 y = parent.transform.position.y + radius/2 * Mathf.Sin(currentState * yValueMultiplier);
@@ -62,11 +56,13 @@ public class OrbitParent : MonoBehaviour
         //Debug.Log(currentState);
     }
 
+    // atualiza o raio da órbita em tempo real
     public void SetRadius(float newRadius)
     {
         this.radius = newRadius;
     }
 
+    // atualiza a velocidade angular da órbita em tempo real
     public void SetSpeed(float newSpeed)
     {
         this.orbitSpeed = newSpeed;

@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 
+// representa uma regra de produção do L-System no formato "Predecessor -> Sucessor" (ex: d3 -> d2 M)
 public class ProductionRule
 {
     public string PredecessorId { get; set; }
-    public int? PredecessorParam { get; set; } // Null se aplicar a qualquer valor ou sem parâmetro
+    public int? PredecessorParam { get; set; } // null se aplicar a qualquer valor ou sem parâmetro
     public List<Symbol> Successor { get; set; }
 
     public ProductionRule (string predecessorId, int? predecessorParam, List<Symbol> successor)
@@ -13,7 +14,7 @@ public class ProductionRule
         Successor = successor;
     }
 
-    // Verifica se a regra se aplica a um dado Símbolo
+    // verifica se a regra se aplica a um dado Símbolo
     public bool Matches(Symbol symbol)
     {
         if (symbol.Id != PredecessorId) return false;

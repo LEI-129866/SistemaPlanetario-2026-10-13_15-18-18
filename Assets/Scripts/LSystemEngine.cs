@@ -14,14 +14,14 @@ public class LSystemEngine
     public LSystemEngine(List<Symbol> axiom, List<ProductionRule> rules)
     {
         this.rules = rules;
-        history.Add(axiom); // Passo 0
+        history.Add(axiom); // passo 0
     }
 
     public List<Symbol> GetCurrentWord() => history[CurrentStep];
 
     public void DeriveNext()
     {
-        // se o passo seguinte já está no histórico
+        // se o passo seguinte já está no histórico,
         // apenas avançamos o índice do passo atual sem recriar ou duplicar palavras
         if (CurrentStep < history.Count - 1){
             CurrentStep++;
@@ -33,15 +33,15 @@ public class LSystemEngine
         List<Symbol> currentWord = GetCurrentWord();
         List<Symbol> nextWord = new List<Symbol>();
 
-        // Derivação em paralelo para cada símbolo
+        // derivação em paralelo para cada símbolo
         foreach (Symbol symbol in currentWord)
         {
-            // Encontrar a regra de produção adequada ao símbolo
+            // encontrar a regra de produção adequada ao símbolo
             ProductionRule matchedRule = rules.FirstOrDefault(r => r.Matches(symbol));
 
             if (matchedRule != null)
             {
-                // Aplica a regra de produção
+                // aplica a regra de produção
                 foreach (Symbol succ in matchedRule.Successor)
                 {
                     nextWord.Add(new Symbol(succ.Id, succ.Parameter));
@@ -49,16 +49,16 @@ public class LSystemEngine
             }
             else
             {
-                // Produção Identidade: copia sem alterações
+                // produção identidade: copia sem alterações
                 nextWord.Add(new Symbol(symbol.Id, symbol.Parameter));
             }
         }
 
-        // Verifica se a evolução terminou (palavra idêntica à anterior)
+        // verifica se a evolução terminou (palavra idêntica à anterior)
         if (WordsAreEqual(currentWord, nextWord))
         {
             IsFinished = true;
-            Debug.Log("<color=green>Evolução Concluída! Nenhum símbolo foi alterado.</color>");
+            // Debug.Log("<color=green>Evolução Concluída! Nenhum símbolo foi alterado.</color>");
             return;
         }
 
@@ -71,7 +71,7 @@ public class LSystemEngine
         if (CurrentStep > 0)
         {
             CurrentStep--;
-            IsFinished = false; // Se recuar, reativa a evolução
+            IsFinished = false; // se recuar, reativa a evolução
         }
     }
 
