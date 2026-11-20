@@ -2323,13 +2323,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c06ba995ec17408fa6212586d149273, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIManager
-  nextButton: {fileID: 0}
+  nextButton: {fileID: 737145987}
   lSystemTester: {fileID: 1099160861}
   sceneBuilder: {fileID: 1099160859}
   stepText: {fileID: 1952722519}
   wordText: {fileID: 991060109}
   playPauseButtonText: {fileID: 336878784}
-  orbitRadiusText: {fileID: 0}
+  orbitRadiusText: {fileID: 27549341}
   orbitRadiusSlider: {fileID: 1956594530}
   speedSlider: {fileID: 16106465}
 --- !u!1 &1216886536
