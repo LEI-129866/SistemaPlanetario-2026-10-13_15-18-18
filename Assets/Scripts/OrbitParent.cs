@@ -6,6 +6,8 @@ public class OrbitParent : MonoBehaviour
     [SerializeField] private float radius = 5;
     [SerializeField] private float orbitSpeed = 4;
     [SerializeField] private bool randomizeBegginingValue = false;
+    [SerializeField] private bool randomizeBegginingState = false;
+    [SerializeField] private bool randomizeSpeedMultiplier = false;
     [SerializeField] private bool useYValue = false;
     [SerializeField] private float yValueMultiplier = 3f;
 
@@ -13,6 +15,7 @@ public class OrbitParent : MonoBehaviour
     private float currentState = 0; // angulo atual da órbita em [0, 2π]
     private bool switchYCos = false;
     private float radiusOffset = 0f;
+    private float speedRandomMultiplier = 1f;
     private GameObject parent;
 
     // função chamada uma vez antes da Update() depois de ser criado o MonoBehaviour
@@ -29,13 +32,19 @@ public class OrbitParent : MonoBehaviour
             radiusOffset = Random.Range(0, radius / 3);
         }
 
+        if (randomizeBegginingState)
+            currentState = Random.Range(0f, 2 * PI);
+
+        if (randomizeSpeedMultiplier)
+            speedRandomMultiplier = Random.Range(0.7f, 1.3f);
+
     }
 
     // função chamada uma vez por frame
     void Update()
     {
         // incrementa o ângulo orbital de forma independente da taxa de frames (FPS)
-        currentState += orbitSpeed * Time.deltaTime;
+        currentState += orbitSpeed * speedRandomMultiplier * Time.deltaTime;
         currentState = currentState % (2 * PI);
 
         // calcula a nova posição circular no plano XZ em torno da posição global do pai

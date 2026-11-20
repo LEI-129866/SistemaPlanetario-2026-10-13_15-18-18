@@ -139,8 +139,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b30b9c5520877ed45927ca3e0d229c53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OrbitParent
-  radius: 5
+  radius: 15
   orbitSpeed: 4
   randomizeBegginingValue: 0
+  randomizeBegginingState: 1
+  randomizeSpeedMultiplier: 1
   useYValue: 0
   yValueMultiplier: 3

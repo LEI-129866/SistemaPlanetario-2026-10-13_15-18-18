@@ -161,7 +161,7 @@ public class SceneBuilder : MonoBehaviour
                 if (orbit != null)
                 {
                     bool isMoon = obj.transform.parent != null && obj.transform.parent != (systemOrigin != null ? systemOrigin.transform : transform);
-                    orbit.SetSpeed(isMoon ? currentOrbitSpeed * 3f : currentOrbitSpeed);
+                    orbit.SetSpeed(isMoon ? currentOrbitSpeed * 2f : currentOrbitSpeed);
                 }
             }
         }
@@ -225,13 +225,16 @@ public class SceneBuilder : MonoBehaviour
     }
 
     // instancia um corpo em órbita direta da estrela (M, N ou P) e configura o seu OrbitParent
-    private GameObject SpawnOrbitingBody(GameObject prefab, Transform parent, float radius)
+    private GameObject SpawnOrbitingBody(GameObject prefab, Transform parent, float radius, bool randomizeInitialState = false)
     {
         if (prefab == null) return parent.gameObject;
+
+        //orbitComp.randomize = true;
 
         GameObject body = Instantiate(prefab, parent);
 
         OrbitParent orbitComp = body.GetComponent<OrbitParent>();
+
         if (orbitComp != null){
             orbitComp.SetRadius(radius); 
             orbitComp.SetSpeed(currentOrbitSpeed); // aplica a velocidade atual do slider
@@ -254,7 +257,7 @@ public class SceneBuilder : MonoBehaviour
 
         GameObject moon = Instantiate(moonPrefab, parentBody);
 
-        // garante que a Lua é sempre mais pequena que o planeta pai (ex: 30% do tamanho do planeta)
+        // garante que a Lua é sempre mais pequena que o planeta pai (30% do tamanho do planeta)
         moon.transform.localScale = Vector3.one * 0.3f;
 
         // define a distância (raio) da Lua ao planeta
@@ -267,7 +270,7 @@ public class SceneBuilder : MonoBehaviour
         if (orbitComp != null)
         {
             orbitComp.SetRadius(moonRadius);
-            orbitComp.SetSpeed(currentOrbitSpeed * 3f); // aplica a velocidade atual do slider
+            orbitComp.SetSpeed(currentOrbitSpeed * 2f); // aplica a velocidade atual do slider
         }
         else
         {

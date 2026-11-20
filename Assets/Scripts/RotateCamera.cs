@@ -32,17 +32,17 @@ public class RotateCamera : MonoBehaviour
         if (kb != null)
         {   
             // Rotação horizontal (A/D) e vertical (W/S)
-            if (kb.aKey.isPressed) yaw -= rotSpeed * Time.deltaTime;
-            if (kb.dKey.isPressed) yaw += rotSpeed * Time.deltaTime;
-            if (kb.wKey.isPressed) pitch -= rotSpeed * Time.deltaTime;
-            if (kb.sKey.isPressed) pitch += rotSpeed * Time.deltaTime;
+            if (kb.aKey.isPressed) yaw += rotSpeed * Time.deltaTime;
+            if (kb.dKey.isPressed) yaw -= rotSpeed * Time.deltaTime;
+            if (kb.wKey.isPressed) pitch += rotSpeed * Time.deltaTime;
+            if (kb.sKey.isPressed) pitch -= rotSpeed * Time.deltaTime;
 
             // limita o ângulo vertical para evitar que a câmara se vire ao contrário
             pitch = Mathf.Clamp(pitch, -10f, 80f);
 
-            // zoom in (Q) e zoom out (E)
-            if (kb.qKey.isPressed) dist -= zoomSpeed * Time.deltaTime;
-            if (kb.eKey.isPressed) dist += zoomSpeed * Time.deltaTime;
+            // zoom in (E) e zoom out (Q)
+            if (kb.qKey.isPressed) dist += zoomSpeed * Time.deltaTime;
+            if (kb.eKey.isPressed) dist -= zoomSpeed * Time.deltaTime;
         }
 
         // garante que a distância respeita os limites mínimo e máximo definidos

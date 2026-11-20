@@ -142,5 +142,7 @@ MonoBehaviour:
   radius: 1.5
   orbitSpeed: 10
   randomizeBegginingValue: 0
+  randomizeBegginingState: 0
+  randomizeSpeedMultiplier: 1
   useYValue: 0
   yValueMultiplier: 3
