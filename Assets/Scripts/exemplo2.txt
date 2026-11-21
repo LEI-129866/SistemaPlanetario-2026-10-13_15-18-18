@@ -1,0 +1,20 @@
+1 1.570796327
+1000 100 10
+1
+1 0.5 0.1
+0.5 0.1
+0.01
+Nv
+8
+1 Nv -> Eb ff ff ff ff ff G1 ff ff ff ff ff ff G1 ff ff ff ff ff ff G1
+1 Eb -> Ea
+1 G1 -> Pc [_ ff R1 ff R1 _]
+0.5 0.05
+1 G1 -> G1
+1 Pc -> Pb
+0.5 0.05
+1 Pb -> Pa
+0.5 0.05
+3 R1 -> La
+-0.5 0.2
+1 R1 -> R1
