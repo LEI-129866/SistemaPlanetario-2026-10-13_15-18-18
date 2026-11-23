@@ -1,9 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-using System.Collections.Generic;
-using UnityEngine;
-
 // Interprets an L-system word with a 3D turtle.
 public class TurtleInterpreter : MonoBehaviour
 {
@@ -151,7 +148,6 @@ public class TurtleInterpreter : MonoBehaviour
             }
         }
     }
-}
 
     //private void Start()
     //{
