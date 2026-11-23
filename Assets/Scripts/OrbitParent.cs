@@ -78,6 +78,9 @@ public class OrbitParent : MonoBehaviour
     //}
 
 
+    // Multiplicador global da velocidade de simulação (x1 a x10^4, controlado pelo LSystemTester / UI)
+    public static float TimeScaleMultiplier = 1f;
+
     [SerializeField] private float radius = 5f;
     [SerializeField] private float orbitSpeed = 4f; // beta em rad/s
 
@@ -111,7 +114,7 @@ public class OrbitParent : MonoBehaviour
     {
         if (radius <= 0.0001f || Mathf.Approximately(orbitSpeed, 0f)) return;
 
-        currentAngle = (currentAngle + orbitSpeed * Time.deltaTime) % (2f * Mathf.PI);
+        currentAngle = (currentAngle + orbitSpeed * TimeScaleMultiplier * Time.deltaTime) % (2f * Mathf.PI);
         UpdateLocalPosition();
     }
 

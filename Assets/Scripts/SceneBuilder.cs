@@ -20,6 +20,7 @@ public class SceneBuilder : MonoBehaviour
     [SerializeField] private GameObject moonPrefab;          // La: Lua
 
     private List<GameObject> spawnedObjects = new List<GameObject>();
+    private Dictionary<int, float> savedOrbitalPhases = new Dictionary<int, float>();
     private System.Random phaseRng;
     private bool useRandomInitialPhase = true;
 
@@ -27,6 +28,7 @@ public class SceneBuilder : MonoBehaviour
     // Chamado pelo LSystemTester sempre que um novo passo é gerado (Fase 2)
     public void BuildScene(List<Symbol> word, SimulationConfig config, int orbitPhaseSeed = 123, bool useRandomInitialPhase = true)
     {
+        SaveCurrentPhases();
         ClearScene();
 
         if (word == null || word.Count == 0 || config == null) return;
@@ -67,35 +69,35 @@ public class SceneBuilder : MonoBehaviour
                 return null;
 
             case "Eb":
-                return SpawnStar(protoStarPrefab, currentFrame, turtleLocalPos, turtleLocalRot, config.starRadius);
+                return SpawnStar(protoStarPrefab, symbol, currentFrame, turtleLocalPos, turtleLocalRot, config.starRadius, config.starMass);
 
             case "Ea":
-                return SpawnStar(starPrefab, currentFrame, turtleLocalPos, turtleLocalRot, config.starRadius);
+                return SpawnStar(starPrefab, symbol, currentFrame, turtleLocalPos, turtleLocalRot, config.starRadius, config.starMass);
 
             case "G1":
-                return SpawnRing(gasRingPrefab, currentFrame, turtleLocalPos, turtleLocalRot, config.gasRingWidth);
+                return SpawnRing("GasRing_G1", gasRingPrefab, currentFrame, turtleLocalPos, turtleLocalRot, config.gasRingWidth);
 
             case "R1":
-                return SpawnRing(rockRingPrefab, currentFrame, turtleLocalPos, turtleLocalRot, config.rockRingWidth);
+                return SpawnRing("RockRing_R1", rockRingPrefab, currentFrame, turtleLocalPos, turtleLocalRot, config.rockRingWidth);
 
             case "Pc":
-                return SpawnOrbitingBody(planetesimalPrefab, symbol, currentFrame, turtleLocalPos, turtleLocalRot, config.planetRadius);
+                return SpawnOrbitingBody(planetesimalPrefab, symbol, currentFrame, turtleLocalPos, turtleLocalRot, config.planetRadius, config.planetMass);
 
             case "Pb":
-                return SpawnOrbitingBody(protoPlanetPrefab, symbol, currentFrame, turtleLocalPos, turtleLocalRot, config.planetRadius);
+                return SpawnOrbitingBody(protoPlanetPrefab, symbol, currentFrame, turtleLocalPos, turtleLocalRot, config.planetRadius, config.planetMass);
 
             case "Pa":
-                return SpawnOrbitingBody(planetPrefab, symbol, currentFrame, turtleLocalPos, turtleLocalRot, config.planetRadius);
+                return SpawnOrbitingBody(planetPrefab, symbol, currentFrame, turtleLocalPos, turtleLocalRot, config.planetRadius, config.planetMass);
 
             case "La":
-                return SpawnOrbitingBody(moonPrefab, symbol, currentFrame, turtleLocalPos, turtleLocalRot, config.moonRadius);
+                return SpawnOrbitingBody(moonPrefab, symbol, currentFrame, turtleLocalPos, turtleLocalRot, config.moonRadius, config.moonMass);
 
             default:
                 return null;
         }
     }
 
-    private Transform SpawnStar(GameObject prefab, Transform parent, Vector3 localPos, Quaternion localRot, float radius)
+    private Transform SpawnStar(GameObject prefab, Symbol symbol, Transform parent, Vector3 localPos, Quaternion localRot, float radius, float mass)
     {
         if (prefab == null) return null;
 
@@ -104,6 +106,7 @@ public class SceneBuilder : MonoBehaviour
         star.transform.localRotation = localRot;
         star.transform.localScale = Vector3.one * (2f * radius);
 
+        AttachCelestialBody(star, symbol.Id, symbol.BodyId, mass);
         RegisterSpawnedObject(star);
         return star.transform;
     }
@@ -125,22 +128,108 @@ public class SceneBuilder : MonoBehaviour
         RegisterSpawnedObject(cloud);
     }
 
-    private Transform SpawnRing(GameObject prefab, Transform parent, Vector3 turtleLocalPos, Quaternion turtleLocalRot, float ringWidth)
+    private Transform SpawnRing(string ringName, GameObject materialSourcePrefab, Transform parent, Vector3 turtleLocalPos, Quaternion turtleLocalRot, float ringWidth)
     {
-        if (prefab == null) return null;
+        float innerRadius = turtleLocalPos.magnitude;
+        float outerRadius = innerRadius + ringWidth;
 
-        GameObject ring = Instantiate(prefab, parent);
+        GameObject ring = new GameObject(ringName);
+        ring.transform.SetParent(parent, worldPositionStays: false);
         ring.transform.localPosition = Vector3.zero;
         ring.transform.localRotation = turtleLocalRot;
 
-        float innerRadius = turtleLocalPos.magnitude;
-        float outerRadius = innerRadius + ringWidth;
-        float diameter = outerRadius * 2f;
+        MeshFilter meshFilter = ring.AddComponent<MeshFilter>();
+        MeshRenderer meshRenderer = ring.AddComponent<MeshRenderer>();
 
-        ring.transform.localScale = new Vector3(diameter, ring.transform.localScale.y, diameter);
+        if (materialSourcePrefab != null)
+        {
+            MeshRenderer sourceRenderer = materialSourcePrefab.GetComponentInChildren<MeshRenderer>();
+            if (sourceRenderer != null)
+            {
+                meshRenderer.sharedMaterial = sourceRenderer.sharedMaterial;
+            }
+        }
+
+        meshFilter.mesh = BuildAnnulusMesh(innerRadius, outerRadius, 72);
 
         RegisterSpawnedObject(ring);
         return ring.transform;
+    }
+
+    private Mesh BuildAnnulusMesh(float innerRadius, float outerRadius, int segments)
+    {
+        Mesh mesh = new Mesh();
+        int vertCountPerSide = (segments + 1) * 2;
+        Vector3[] vertices = new Vector3[vertCountPerSide * 2];
+        Vector3[] normals = new Vector3[vertCountPerSide * 2];
+        Vector2[] uvs = new Vector2[vertCountPerSide * 2];
+        int[] triangles = new int[segments * 12];
+
+        for (int i = 0; i <= segments; i++)
+        {
+            float t = (float)i / segments;
+            float angle = t * Mathf.PI * 2f;
+            float cos = Mathf.Cos(angle);
+            float sin = Mathf.Sin(angle);
+
+            Vector3 innerPos = new Vector3(cos * innerRadius, 0f, sin * innerRadius);
+            Vector3 outerPos = new Vector3(cos * outerRadius, 0f, sin * outerRadius);
+
+            // Face superior (+Y)
+            int topIdx = i * 2;
+            vertices[topIdx] = innerPos;
+            vertices[topIdx + 1] = outerPos;
+            normals[topIdx] = Vector3.up;
+            normals[topIdx + 1] = Vector3.up;
+            uvs[topIdx] = new Vector2(0f, t);
+            uvs[topIdx + 1] = new Vector2(1f, t);
+
+            // Face inferior (-Y)
+            int botIdx = vertCountPerSide + i * 2;
+            vertices[botIdx] = innerPos;
+            vertices[botIdx + 1] = outerPos;
+            normals[botIdx] = Vector3.down;
+            normals[botIdx + 1] = Vector3.down;
+            uvs[botIdx] = new Vector2(0f, t);
+            uvs[botIdx + 1] = new Vector2(1f, t);
+        }
+
+        int triIdx = 0;
+        for (int i = 0; i < segments; i++)
+        {
+            int t0 = i * 2;
+            int t1 = t0 + 1;
+            int t2 = t0 + 2;
+            int t3 = t0 + 3;
+
+            triangles[triIdx++] = t0;
+            triangles[triIdx++] = t2;
+            triangles[triIdx++] = t1;
+
+            triangles[triIdx++] = t1;
+            triangles[triIdx++] = t2;
+            triangles[triIdx++] = t3;
+
+            int b0 = vertCountPerSide + i * 2;
+            int b1 = b0 + 1;
+            int b2 = b0 + 2;
+            int b3 = b0 + 3;
+
+            triangles[triIdx++] = b0;
+            triangles[triIdx++] = b1;
+            triangles[triIdx++] = b2;
+
+            triangles[triIdx++] = b1;
+            triangles[triIdx++] = b3;
+            triangles[triIdx++] = b2;
+        }
+
+        mesh.vertices = vertices;
+        mesh.normals = normals;
+        mesh.uv = uvs;
+        mesh.triangles = triangles;
+        mesh.RecalculateBounds();
+        return mesh;
     }
 
     private Transform SpawnOrbitingBody(
@@ -149,20 +238,25 @@ public class SceneBuilder : MonoBehaviour
         Transform parent,
         Vector3 turtleLocalPos,
         Quaternion turtleLocalRot,
-        float radius)
+        float radius,
+        float mass)
     {
         if (prefab == null) return null;
 
-        // Se a fase inicial aleatória estiver ativa, roda a posição local no plano orbital (eixo Y)
-        Vector3 initialLocalPos = turtleLocalPos;
-        if (useRandomInitialPhase && phaseRng != null)
+        // Preserva a fase se este corpo já existia no passo anterior (BodyId),
+        // caso contrário usa a seed aleatória (se ativa) ou a posição base (NaN)
+        float phaseToUse = float.NaN;
+        if (symbol.BodyId >= 0 && savedOrbitalPhases.TryGetValue(symbol.BodyId, out float previousPhase))
         {
-            float randomAngleDeg = (float)(phaseRng.NextDouble() * 360.0);
-            initialLocalPos = Quaternion.Euler(0f, randomAngleDeg, 0f) * turtleLocalPos;
+            phaseToUse = previousPhase;
+        }
+        else if (useRandomInitialPhase && phaseRng != null)
+        {
+            phaseToUse = (float)(phaseRng.NextDouble() * 2.0 * Mathf.PI);
         }
 
         GameObject body = Instantiate(prefab, parent);
-        body.transform.localPosition = initialLocalPos;
+        body.transform.localPosition = turtleLocalPos;
         body.transform.localRotation = turtleLocalRot;
         body.transform.localScale = Vector3.one * (2f * radius);
 
@@ -176,10 +270,40 @@ public class SceneBuilder : MonoBehaviour
         if (orbitComp == null)
             orbitComp = body.AddComponent<OrbitParent>();
 
-        orbitComp.InitOrbit(initialLocalPos, symbol.OrbitSpeed);
+        orbitComp.InitOrbit(turtleLocalPos, symbol.OrbitSpeed, phaseToUse);
 
+        AttachCelestialBody(body, symbol.Id, symbol.BodyId, mass);
         RegisterSpawnedObject(body);
         return body.transform;
+    }
+
+    private void AttachCelestialBody(GameObject obj, string symbolId, int bodyId, float mass)
+    {
+        CelestialBody cb = obj.GetComponent<CelestialBody>();
+        if (cb == null)
+            cb = obj.AddComponent<CelestialBody>();
+
+        cb.SymbolId = symbolId;
+        cb.BodyId = bodyId;
+        cb.Mass = mass;
+    }
+
+    private void SaveCurrentPhases()
+    {
+        savedOrbitalPhases.Clear();
+
+        foreach (GameObject obj in spawnedObjects)
+        {
+            if (obj == null) continue;
+
+            CelestialBody cb = obj.GetComponent<CelestialBody>();
+            OrbitParent orbit = obj.GetComponent<OrbitParent>();
+
+            if (cb != null && orbit != null && cb.BodyId >= 0)
+            {
+                savedOrbitalPhases[cb.BodyId] = orbit.GetCurrentPhase();
+            }
+        }
     }
 
     public void ClearScene()
@@ -490,4 +614,12 @@ public class SceneBuilder : MonoBehaviour
 
     #endregion
     */
+}
+
+// Componente leve anexado a cada astro para guardar a massa (gravidade) e o BodyId (preservação de fase)
+public class CelestialBody : MonoBehaviour
+{
+    public string SymbolId;
+    public int BodyId = -1;
+    public float Mass = 0f;
 }

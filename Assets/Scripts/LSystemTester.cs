@@ -12,6 +12,7 @@ public class LSystemTester : MonoBehaviour
     [Header("Referências e Controlo Temporal")]
     [SerializeField] private SceneBuilder sceneBuilder;
     [SerializeField] private float autoPlayInterval = 2.0f; // tempo em segundos entre passos no Auto-Play
+    [SerializeField, Range(1f, 10000f)] private float timeScaleMultiplier = 1f; // fator de velocidade (x1 a x10^4)
 
     private SimulationConfig currentConfig;
     private LSystemEngine engine;
@@ -24,14 +25,19 @@ public class LSystemTester : MonoBehaviour
     public int LSystemSeed => lSystemSeed;
     public int OrbitPhaseSeed => orbitPhaseSeed;
     public bool UseRandomInitialPhase => useRandomInitialPhase;
+    public float TimeScaleMultiplier => timeScaleMultiplier;
 
     void Start()
     {
+        OrbitParent.TimeScaleMultiplier = timeScaleMultiplier;
         ResetSystem();
     }
 
     void Update()
     {
+        // mantém o multiplicador sincronizado caso seja ajustado no Inspector
+        OrbitParent.TimeScaleMultiplier = timeScaleMultiplier;
+
         // gestão da evolução automática (Auto-Play) até nenhum símbolo ter uma produção associada
         if (isPlaying)
         {
@@ -104,6 +110,13 @@ public class LSystemTester : MonoBehaviour
         UpdateVisuals();
     }
 
+    // ajusta o multiplicador de velocidade das órbitas/rotações (entre x1 e x10^4)
+    public void SetTimeScaleMultiplier(float multiplier)
+    {
+        timeScaleMultiplier = Mathf.Clamp(multiplier, 1f, 10000f);
+        OrbitParent.TimeScaleMultiplier = timeScaleMultiplier;
+    }
+
     // controlos de estado do Auto-Play (chamados pelos botões da UI)
     public void Play() => isPlaying = true;
     public void Pause() => isPlaying = false;
@@ -125,7 +138,6 @@ public class LSystemTester : MonoBehaviour
 
         if (sceneBuilder != null)
         {
-            // comentado até atualizarmos o SceneBuilder/TurtleInterpreter na Fase 2
             sceneBuilder.BuildScene(word, currentConfig, orbitPhaseSeed, useRandomInitialPhase);
         }
     }
