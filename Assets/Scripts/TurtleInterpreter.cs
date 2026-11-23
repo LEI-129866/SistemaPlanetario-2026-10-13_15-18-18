@@ -1,26 +1,23 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+using System.Collections.Generic;
+using UnityEngine;
+
 // Interprets an L-system word with a 3D turtle.
 public class TurtleInterpreter : MonoBehaviour
 {
-    //[SerializeField] private string word = "FFfFfFF";
-    //[SerializeField] private float l = 4f;   // step length
-
     private struct TurtleState
     {
         public Vector3 localPosition;
         public Quaternion localRotation;
         public Transform currentFrame;
-        public Transform firstBodyInFrame;
+        public Transform lastBodyInFrame;
+        public Vector3 lastBodyLocalPos;
 
         public Vector3 Heading => localRotation * Vector3.forward;
         public Vector3 Left    => localRotation * Vector3.left;
         public Vector3 Up      => localRotation * Vector3.up;
-
-        //public Vector3 position;
-        //public Quaternion orientation;
-        //public Vector3 Heading => orientation * Vector3.up;
     }
 
     // Interpreta a palavra da Fase 2 usando os parâmetros do SimulationConfig e constrói a cena via SceneBuilder
@@ -36,7 +33,8 @@ public class TurtleInterpreter : MonoBehaviour
             localPosition = Vector3.zero,
             localRotation = Quaternion.identity,
             currentFrame = rootFrame,
-            firstBodyInFrame = null
+            lastBodyInFrame = null,
+            lastBodyLocalPos = Vector3.zero
         };
 
         float c = config.stepDistance;
@@ -59,15 +57,15 @@ public class TurtleInterpreter : MonoBehaviour
                     state.localRotation *= Quaternion.AngleAxis(-angleDeg, Vector3.up);
                     break;
 
-                case "X+": // Inclina para baixo a radianos (em torno de l)
+                case "x+": // Inclina para baixo a radianos (em torno de l)
                     state.localRotation *= Quaternion.AngleAxis(angleDeg, Vector3.right);
                     break;
 
-                case "X-": // Inclina para cima a radianos (em torno de l)
+                case "x-": // Inclina para cima a radianos (em torno de l)
                     state.localRotation *= Quaternion.AngleAxis(-angleDeg, Vector3.right);
                     break;
 
-                case "Z+": // Rola para a esquerda a radianos (em torno de h)
+                case "z+": // Rola para a esquerda a radianos (em torno de h)
                     state.localRotation *= Quaternion.AngleAxis(angleDeg, Vector3.forward);
                     break;
 
@@ -85,14 +83,20 @@ public class TurtleInterpreter : MonoBehaviour
                     GameObject newFrameObj = new GameObject("RefFrame_Fn");
                     Transform newFrame = newFrameObj.transform;
 
-                    // Fn acompanha a órbita do primeiro objeto estelar que precede '[' em Fa (ou fica fixo em Fa)
-                    Transform parentForFn = (state.firstBodyInFrame != null) ? state.firstBodyInFrame : state.currentFrame;
-                    newFrame.SetParent(parentForFn, worldPositionStays: false);
-
-                    // Posiciona e orienta Fn relativamente a Fa segundo a tartaruga (z -> h, x -> -l, y -> u)
-                    Vector3 worldPos = state.currentFrame.TransformPoint(state.localPosition);
-                    Quaternion worldRot = state.currentFrame.rotation * state.localRotation;
-                    newFrame.SetPositionAndRotation(worldPos, worldRot);
+                    if (state.lastBodyInFrame != null)
+                    {
+                        // Fn acompanha a órbita do último astro criado em Fa, mantendo o deslocamento relativo
+                        newFrame.SetParent(state.lastBodyInFrame, worldPositionStays: false);
+                        newFrame.localPosition = state.localPosition - state.lastBodyLocalPos;
+                        newFrame.rotation = state.currentFrame.rotation * state.localRotation;
+                    }
+                    else
+                    {
+                        // Se não houver astro anterior em Fa, posiciona diretamente no referencial Fa
+                        newFrame.SetParent(state.currentFrame, worldPositionStays: false);
+                        newFrame.localPosition = state.localPosition;
+                        newFrame.localRotation = state.localRotation;
+                    }
 
                     // Regista no SceneBuilder para ser limpo quando mudar de passo
                     sceneBuilder.RegisterSpawnedObject(newFrameObj);
@@ -103,7 +107,8 @@ public class TurtleInterpreter : MonoBehaviour
                         localPosition = Vector3.zero,
                         localRotation = Quaternion.identity,
                         currentFrame = newFrame,
-                        firstBodyInFrame = null
+                        lastBodyInFrame = null,
+                        lastBodyLocalPos = Vector3.zero
                     };
                     break;
 
@@ -133,10 +138,11 @@ public class TurtleInterpreter : MonoBehaviour
                         state.localRotation
                     );
 
-                    // Guarda apenas o PRIMEIRO objeto estelar criado neste referencial Fa
-                    if (state.firstBodyInFrame == null && createdBody != null)
+                    // Guarda o último astro sólido criado neste referencial (ignora nuvens e anéis)
+                    if (createdBody != null && symbol.Id != "Nv" && symbol.Id != "G1" && symbol.Id != "R1")
                     {
-                        state.firstBodyInFrame = createdBody;
+                        state.lastBodyInFrame = createdBody;
+                        state.lastBodyLocalPos = state.localPosition;
                     }
                     break;
 
@@ -145,6 +151,7 @@ public class TurtleInterpreter : MonoBehaviour
             }
         }
     }
+}
 
     //private void Start()
     //{

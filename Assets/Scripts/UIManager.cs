@@ -5,41 +5,74 @@ using TMPro;
 
 public class UIManager : MonoBehaviour
 {
-
+    [Header("Botões Principais")]
     [SerializeField] private Button nextButton;
+    [SerializeField] private Button cameraToggleButton;
 
     [Header("Referências Principais")]
     [SerializeField] private LSystemTester lSystemTester;
     [SerializeField] private SceneBuilder sceneBuilder;
+    [SerializeField] private RotateCamera rotateCamera;
+    [SerializeField] private SpaceshipController spaceshipController;
 
-    [Header("Textos informativos")]
+    [Header("Textos Informativos")]
     [SerializeField] private TextMeshProUGUI stepText;
     [SerializeField] private TextMeshProUGUI wordText;
     [SerializeField] private TextMeshProUGUI playPauseButtonText;
-    [SerializeField] private TextMeshProUGUI orbitRadiusText;
+    [SerializeField] private TextMeshProUGUI speedText;
+    [SerializeField] private TextMeshProUGUI cameraButtonText;
+    [SerializeField] private TextMeshProUGUI shipTelemetryText; // opcional: mostra velocidade e força gravítica da nave
 
-    [Header("Sliders")]
+    [Header("Controlos da Fase 2 (Seeds, Fase Inicial e Velocidade)")]
+    [SerializeField] private TMP_InputField lSystemSeedInput;
+    [SerializeField] private TMP_InputField orbitPhaseSeedInput;
+    [SerializeField] private Toggle randomInitialPhaseToggle;
+    [SerializeField] private Slider speedSlider; // Multiplicador temporal: x1 a x10^4
+
+    [Header("Controlos Legados (Opcional)")]
     [SerializeField] private Slider orbitRadiusSlider;
-    [SerializeField] private Slider speedSlider;
-    
 
     void Start()
     {
-        // Configuração inicial dos limites, valores por defeito e listeners dos Sliders
-        if (orbitRadiusSlider != null)
-        {
-            orbitRadiusSlider.minValue = 4.0f; // Mínimo seguro para não entrar dentro da estrela
-            orbitRadiusSlider.maxValue = 8.0f; 
-            orbitRadiusSlider.value = 5.0f;
-            orbitRadiusSlider.onValueChanged.AddListener(OnOrbitRadiusChanged);
-        }
-
+        // 1. Configurar Slider de Velocidade Temporal (x1 a x10^4)
         if (speedSlider != null)
         {
-            speedSlider.minValue = 0.5f; 
-            speedSlider.maxValue = 8.0f; 
-            speedSlider.value = 4.0f;
+            speedSlider.minValue = 1f;
+            speedSlider.maxValue = 10000f;
+            speedSlider.value = lSystemTester != null ? lSystemTester.TimeScaleMultiplier : 1f;
             speedSlider.onValueChanged.AddListener(OnSpeedChanged);
+            OnSpeedChanged(speedSlider.value);
+        }
+
+        // 2. Configurar Inputs das Sementes (L-System e Fases Orbitais)
+        if (lSystemSeedInput != null && lSystemTester != null)
+        {
+            lSystemSeedInput.contentType = TMP_InputField.ContentType.IntegerNumber;
+            lSystemSeedInput.text = lSystemTester.LSystemSeed.ToString();
+            lSystemSeedInput.onEndEdit.AddListener(OnLSystemSeedChanged);
+        }
+
+        if (orbitPhaseSeedInput != null && lSystemTester != null)
+        {
+            orbitPhaseSeedInput.contentType = TMP_InputField.ContentType.IntegerNumber;
+            orbitPhaseSeedInput.text = lSystemTester.OrbitPhaseSeed.ToString();
+            orbitPhaseSeedInput.onEndEdit.AddListener(OnOrbitPhaseSeedChanged);
+        }
+
+        // 3. Configurar Toggle da Fase Inicial (Zero vs Aleatória)
+        if (randomInitialPhaseToggle != null && lSystemTester != null)
+        {
+            randomInitialPhaseToggle.isOn = lSystemTester.UseRandomInitialPhase;
+            randomInitialPhaseToggle.onValueChanged.AddListener(OnRandomPhaseToggleChanged);
+        }
+
+        // 4. Mantido caso o slider antigo ainda exista no Canvas
+        if (orbitRadiusSlider != null)
+        {
+            orbitRadiusSlider.minValue = 4.0f;
+            orbitRadiusSlider.maxValue = 8.0f;
+            orbitRadiusSlider.value = 5.0f;
+            orbitRadiusSlider.onValueChanged.AddListener(OnOrbitRadiusChanged);
         }
 
         UpdateUI();
@@ -50,29 +83,26 @@ public class UIManager : MonoBehaviour
         UpdateUI();
     }
 
-    // sincroniza os textos do ecrã e o estado dos botões com o estado atual do L-System
+    // Sincroniza os textos do ecrã e o estado dos botões com o estado atual do L-System
     private void UpdateUI()
     {
         if (lSystemTester == null || lSystemTester.Engine == null) return;
 
-        bool isFinished = lSystemTester.Engine.IsFinished || lSystemTester.Engine.CurrentStep >= 7;
+        // Na Fase 2, o fim ocorre quando nenhum símbolo tem produções associadas
+        bool isFinished = lSystemTester.Engine.IsFinished;
 
-        // atualiza o número do passo atual e indica quando a evolução terminou
         if (stepText != null)
         {
-            if (isFinished)
-                stepText.text = $"Passo: {lSystemTester.Engine.CurrentStep} (Fim)";
-            else
-                stepText.text = $"Passo: {lSystemTester.Engine.CurrentStep}";
+            stepText.text = isFinished
+                ? $"Passo: {lSystemTester.Engine.CurrentStep} (Fim)"
+                : $"Passo: {lSystemTester.Engine.CurrentStep}";
         }
 
-        // desativa o botão de avanço ao atingir o fim da evolução
         if (nextButton != null)
         {
             nextButton.interactable = !isFinished;
         }
 
-        // atualiza a palavra derivada do L-System
         if (wordText != null)
         {
             var word = lSystemTester.Engine.GetCurrentWord();
@@ -80,12 +110,25 @@ public class UIManager : MonoBehaviour
         }
 
         if (playPauseButtonText != null)
+        {
             playPauseButtonText.text = lSystemTester.IsPlaying ? "Pause" : "Play";
+        }
+
+        if (cameraButtonText != null && rotateCamera != null)
+        {
+            cameraButtonText.text = rotateCamera.IsFollowingSpaceship ? "Câmara: Nave" : "Câmara: Sistema";
+        }
+
+        if (shipTelemetryText != null && spaceshipController != null)
+        {
+            float speed = spaceshipController.Velocity.magnitude;
+            float gravForce = spaceshipController.LastGravityForce.magnitude;
+            shipTelemetryText.text = $"Nave | Vel: {speed:F1} m/s | F_grav: {gravForce:E2} N";
+        }
     }
 
     // --- Métodos chamados pelos Botões --- //
 
-    // pausa o Auto-Play e avança manualmente um passo
     public void OnClickNext()
     {
         lSystemTester.Pause();
@@ -93,7 +136,6 @@ public class UIManager : MonoBehaviour
         ClearButtonSelection();
     }
 
-    // pausa o Auto-Play e recua manualmente um passo
     public void OnClickPrevious()
     {
         lSystemTester.Pause();
@@ -101,26 +143,31 @@ public class UIManager : MonoBehaviour
         ClearButtonSelection();
     }
 
-    // alterna entre execução automática e pausa
     public void OnClickPlayPause()
     {
         lSystemTester.TogglePlayPause();
         ClearButtonSelection();
     }
 
-    // reinicia o L-System para o passo 0 mantendo o raio orbital definido no slider
     public void OnClickReset()
     {
-        // aplica o valor de r definido no slider antes de reiniciar
-        if (sceneBuilder != null && orbitRadiusSlider != null)
-        {
-            sceneBuilder.SetOrbitRadiusStep(orbitRadiusSlider.value);
-        }
         lSystemTester.ResetSystem();
+        if (spaceshipController != null)
+        {
+            spaceshipController.ResetShip();
+        }
         ClearButtonSelection();
     }
 
-    // remove o foco do botão clicado
+    public void OnClickToggleCamera()
+    {
+        if (rotateCamera != null)
+        {
+            rotateCamera.ToggleTarget();
+        }
+        ClearButtonSelection();
+    }
+
     private void ClearButtonSelection()
     {
         if (EventSystem.current != null)
@@ -129,9 +176,45 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // --- Métodos chamados pelos Sliders --- //
+    // --- Callbacks dos Novos Controlos da Fase 2 --- //
 
-    // atualiza o espaçamento radial (r) das órbitas na cena 3D
+    private void OnLSystemSeedChanged(string text)
+    {
+        if (lSystemTester != null && int.TryParse(text, out int newSeed))
+        {
+            lSystemTester.SetLSystemSeed(newSeed);
+        }
+    }
+
+    private void OnOrbitPhaseSeedChanged(string text)
+    {
+        if (lSystemTester != null && int.TryParse(text, out int newSeed))
+        {
+            lSystemTester.SetOrbitPhaseSeed(newSeed);
+        }
+    }
+
+    private void OnRandomPhaseToggleChanged(bool isRandom)
+    {
+        if (lSystemTester != null)
+        {
+            lSystemTester.SetUseRandomInitialPhase(isRandom);
+        }
+    }
+
+    private void OnSpeedChanged(float value)
+    {
+        if (lSystemTester != null)
+        {
+            lSystemTester.SetTimeScaleMultiplier(value);
+        }
+
+        if (speedText != null)
+        {
+            speedText.text = $"Velocidade: x{value:F0}";
+        }
+    }
+
     private void OnOrbitRadiusChanged(float value)
     {
         if (sceneBuilder != null)
@@ -139,21 +222,4 @@ public class UIManager : MonoBehaviour
             sceneBuilder.SetOrbitRadiusStep(value);
         }
     }
-
-    // ajusta em simultâneo a velocidade orbital 3D e o ritmo de avanço do Auto-Play
-    private void OnSpeedChanged(float value)
-    {
-        // ajusta velocidade das órbitas 3D em tempo real
-        if (sceneBuilder != null)
-        {
-            sceneBuilder.SetOrbitSpeed(value);
-        }
-
-        // quanto maior o valor da velocidade, menor o tempo de espera
-        if (lSystemTester != null)
-        {
-            float interval = 4.0f / value; // 4.0 -> 1s/passo; 8.0 -> 0.5s/passo; 0.5 -> 8s/passo
-            lSystemTester.SetAutoPlaySpeed(interval);
-        }
-    }    
 }
