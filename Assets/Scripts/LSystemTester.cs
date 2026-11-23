@@ -126,7 +126,7 @@ public class LSystemTester : MonoBehaviour
         if (sceneBuilder != null)
         {
             // comentado até atualizarmos o SceneBuilder/TurtleInterpreter na Fase 2
-            // sceneBuilder.BuildScene(word, currentConfig, orbitPhaseSeed, useRandomInitialPhase);
+            sceneBuilder.BuildScene(word, currentConfig, orbitPhaseSeed, useRandomInitialPhase);
         }
     }
 }

@@ -3,7 +3,201 @@ using UnityEngine;
 
 public class SceneBuilder : MonoBehaviour
 {
-    
+
+    [Header("Referências")]
+    [SerializeField] private TurtleInterpreter turtleInterpreter;
+    [SerializeField] private GameObject systemOrigin;
+
+    [Header("Prefabs dos Elementos Visuais (Fase 2)")]
+    [SerializeField] private GameObject cloudPrefab;         // Nv: Nuvem difusa
+    [SerializeField] private GameObject protoStarPrefab;     // Eb: Proto-estrela
+    [SerializeField] private GameObject starPrefab;          // Ea: Estrela madura
+    [SerializeField] private GameObject gasRingPrefab;       // G1: Anel de gás (largura dg)
+    [SerializeField] private GameObject rockRingPrefab;      // R1: Anel de rochas (largura dr)
+    [SerializeField] private GameObject planetesimalPrefab;  // Pc: Planetesimal
+    [SerializeField] private GameObject protoPlanetPrefab;   // Pb: Proto-planeta
+    [SerializeField] private GameObject planetPrefab;        // Pa: Planeta formado
+    [SerializeField] private GameObject moonPrefab;          // La: Lua
+
+    private List<GameObject> spawnedObjects = new List<GameObject>();
+    private System.Random phaseRng;
+    private bool useRandomInitialPhase = true;
+
+    // Chamado pelo UIManager/LSystemManager sempre que um novo passo é gerado (Fase 2)
+    // Chamado pelo LSystemTester sempre que um novo passo é gerado (Fase 2)
+    public void BuildScene(List<Symbol> word, SimulationConfig config, int orbitPhaseSeed = 123, bool useRandomInitialPhase = true)
+    {
+        ClearScene();
+
+        if (word == null || word.Count == 0 || config == null) return;
+
+        // Guarda na classe para o SpawnOrbitingBody usar
+        this.phaseRng = new System.Random(orbitPhaseSeed);
+        this.useRandomInitialPhase = useRandomInitialPhase;
+
+        Transform rootFrame = systemOrigin != null ? systemOrigin.transform : transform;
+
+        if (turtleInterpreter == null)
+            turtleInterpreter = GetComponent<TurtleInterpreter>();
+
+        if (turtleInterpreter != null)
+        {
+            turtleInterpreter.Interpret(word, config, rootFrame, this);
+        }
+    }
+
+    public void RegisterSpawnedObject(GameObject obj)
+    {
+        if (obj != null && !spawnedObjects.Contains(obj))
+            spawnedObjects.Add(obj);
+    }
+
+    // Chamado pelo TurtleInterpreter sempre que encontra Nv, Eb, Ea, G1, Pc, Pb, Pa, R1, La
+    public Transform SpawnStellarObject(
+        Symbol symbol,
+        SimulationConfig config,
+        Transform currentFrame,
+        Vector3 turtleLocalPos,
+        Quaternion turtleLocalRot)
+    {
+        switch (symbol.Id)
+        {
+            case "Nv":
+                SpawnCloud(currentFrame, turtleLocalPos, config.starRadius * 10f);
+                return null;
+
+            case "Eb":
+                return SpawnStar(protoStarPrefab, currentFrame, turtleLocalPos, turtleLocalRot, config.starRadius);
+
+            case "Ea":
+                return SpawnStar(starPrefab, currentFrame, turtleLocalPos, turtleLocalRot, config.starRadius);
+
+            case "G1":
+                return SpawnRing(gasRingPrefab, currentFrame, turtleLocalPos, turtleLocalRot, config.gasRingWidth);
+
+            case "R1":
+                return SpawnRing(rockRingPrefab, currentFrame, turtleLocalPos, turtleLocalRot, config.rockRingWidth);
+
+            case "Pc":
+                return SpawnOrbitingBody(planetesimalPrefab, symbol, currentFrame, turtleLocalPos, turtleLocalRot, config.planetRadius);
+
+            case "Pb":
+                return SpawnOrbitingBody(protoPlanetPrefab, symbol, currentFrame, turtleLocalPos, turtleLocalRot, config.planetRadius);
+
+            case "Pa":
+                return SpawnOrbitingBody(planetPrefab, symbol, currentFrame, turtleLocalPos, turtleLocalRot, config.planetRadius);
+
+            case "La":
+                return SpawnOrbitingBody(moonPrefab, symbol, currentFrame, turtleLocalPos, turtleLocalRot, config.moonRadius);
+
+            default:
+                return null;
+        }
+    }
+
+    private Transform SpawnStar(GameObject prefab, Transform parent, Vector3 localPos, Quaternion localRot, float radius)
+    {
+        if (prefab == null) return null;
+
+        GameObject star = Instantiate(prefab, parent);
+        star.transform.localPosition = localPos;
+        star.transform.localRotation = localRot;
+        star.transform.localScale = Vector3.one * (2f * radius);
+
+        RegisterSpawnedObject(star);
+        return star.transform;
+    }
+
+    private void SpawnCloud(Transform parent, Vector3 localPos, float radius)
+    {
+        if (cloudPrefab == null) return;
+
+        GameObject cloud = Instantiate(cloudPrefab, parent);
+        cloud.transform.localPosition = localPos;
+
+        ParticleSystem ps = cloud.GetComponentInChildren<ParticleSystem>();
+        if (ps != null)
+        {
+            var shape = ps.shape;
+            shape.radius = Mathf.Max(radius, 5f);
+        }
+
+        RegisterSpawnedObject(cloud);
+    }
+
+    private Transform SpawnRing(GameObject prefab, Transform parent, Vector3 turtleLocalPos, Quaternion turtleLocalRot, float ringWidth)
+    {
+        if (prefab == null) return null;
+
+        GameObject ring = Instantiate(prefab, parent);
+        ring.transform.localPosition = Vector3.zero;
+        ring.transform.localRotation = turtleLocalRot;
+
+        float innerRadius = turtleLocalPos.magnitude;
+        float outerRadius = innerRadius + ringWidth;
+        float diameter = outerRadius * 2f;
+
+        ring.transform.localScale = new Vector3(diameter, ring.transform.localScale.y, diameter);
+
+        RegisterSpawnedObject(ring);
+        return ring.transform;
+    }
+
+    private Transform SpawnOrbitingBody(
+        GameObject prefab,
+        Symbol symbol,
+        Transform parent,
+        Vector3 turtleLocalPos,
+        Quaternion turtleLocalRot,
+        float radius)
+    {
+        if (prefab == null) return null;
+
+        // Se a fase inicial aleatória estiver ativa, roda a posição local no plano orbital (eixo Y)
+        Vector3 initialLocalPos = turtleLocalPos;
+        if (useRandomInitialPhase && phaseRng != null)
+        {
+            float randomAngleDeg = (float)(phaseRng.NextDouble() * 360.0);
+            initialLocalPos = Quaternion.Euler(0f, randomAngleDeg, 0f) * turtleLocalPos;
+        }
+
+        GameObject body = Instantiate(prefab, parent);
+        body.transform.localPosition = initialLocalPos;
+        body.transform.localRotation = turtleLocalRot;
+        body.transform.localScale = Vector3.one * (2f * radius);
+
+        SelfRotationScript selfRot = body.GetComponentInChildren<SelfRotationScript>();
+        if (selfRot != null)
+        {
+            selfRot.SetRotationSpeed(symbol.RotationSpeed * Mathf.Rad2Deg);
+        }
+
+        OrbitParent orbitComp = body.GetComponent<OrbitParent>();
+        if (orbitComp == null)
+            orbitComp = body.AddComponent<OrbitParent>();
+
+        orbitComp.InitOrbit(initialLocalPos, symbol.OrbitSpeed);
+
+        RegisterSpawnedObject(body);
+        return body.transform;
+    }
+
+    public void ClearScene()
+    {
+        foreach (GameObject obj in spawnedObjects)
+        {
+            if (obj != null)
+                Destroy(obj);
+        }
+        spawnedObjects.Clear();
+    }
+
+    // Métodos mantidos para compatibilidade caso a UI antiga ainda os chame
+    public void SetOrbitRadiusStep(float newStep) { }
+    public void SetOrbitSpeed(float newSpeed) { }
+
+
+    /*
     [SerializeField] private float orbitRadiusStep = 5f;
     [SerializeField] private float currentOrbitSpeed = 4f;
 
@@ -295,4 +489,5 @@ public class SceneBuilder : MonoBehaviour
     }
 
     #endregion
+    */
 }

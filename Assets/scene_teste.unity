@@ -752,9 +752,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   radius: 3
   orbitSpeed: 2
-  randomizeBegginingValue: 0
-  useYValue: 0
-  yValueMultiplier: 3
 --- !u!135 &396408686
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -967,8 +964,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ca7475da1f5040559a0cdb472d33072, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LSystemTester
+  configFileName: exemplo1.txt
+  lSystemSeed: 42
+  orbitPhaseSeed: 123
+  useRandomInitialPhase: 1
   sceneBuilder: {fileID: 1099160859}
-  maxSteps: 7
   autoPlayInterval: 2
 --- !u!4 &463592215
 Transform:
@@ -1515,9 +1515,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   radius: 5
   orbitSpeed: 4
-  randomizeBegginingValue: 0
-  useYValue: 0
-  yValueMultiplier: 3
 --- !u!135 &790703386
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -2250,6 +2247,7 @@ GameObject:
   - component: {fileID: 1099160859}
   - component: {fileID: 1099160861}
   - component: {fileID: 1099160862}
+  - component: {fileID: 1099160863}
   m_Layer: 0
   m_Name: _SceneBuilder
   m_TagString: Untagged
@@ -2269,18 +2267,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 10dfaf246025147159706fb7c4607f94, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SceneBuilder
-  orbitRadiusStep: 5
-  currentOrbitSpeed: 4
+  turtleInterpreter: {fileID: 1099160863}
+  systemOrigin: {fileID: 700522278}
   cloudPrefab: {fileID: 5110566341318483598, guid: 4cc632efc7506874db446e066c555d87, type: 3}
   protoStarPrefab: {fileID: 5845458354049350874, guid: 2c87f209089043d4984686e736097627, type: 3}
   starPrefab: {fileID: 5980187342024495753, guid: c84ce9786f1df5f4dbf09650c635ba9c, type: 3}
-  protoDiskPrefab: {fileID: 2147169178953927244, guid: 19ab16120121c4e359af29cfabb15847, type: 3}
-  ringPrefab: {fileID: 5376963685258561536, guid: 4d4e109309a8d4735bf812e3f5a5b611, type: 3}
+  gasRingPrefab: {fileID: 5376963685258561536, guid: 4d4e109309a8d4735bf812e3f5a5b611, type: 3}
+  rockRingPrefab: {fileID: 5376963685258561536, guid: 4d4e109309a8d4735bf812e3f5a5b611, type: 3}
   planetesimalPrefab: {fileID: 377480997809424293, guid: 9329b84c96590434b8accf2f3a32dc95, type: 3}
   protoPlanetPrefab: {fileID: 6536827964709669908, guid: 9e4f2917a24134430b36b037a290c0ba, type: 3}
   planetPrefab: {fileID: 4998382201024802595, guid: e9dccccae0927406bbf1cd8704b26e7e, type: 3}
   moonPrefab: {fileID: 7437483975392770110, guid: c20ef3d19b3ef4eefbe796509f6cf526, type: 3}
-  systemOrigin: {fileID: 700522278}
 --- !u!4 &1099160860
 Transform:
   m_ObjectHideFlags: 0
@@ -2308,8 +2305,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ca7475da1f5040559a0cdb472d33072, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LSystemTester
+  configFileName: exemplo1.txt
+  lSystemSeed: 42
+  orbitPhaseSeed: 123
+  useRandomInitialPhase: 1
   sceneBuilder: {fileID: 1099160859}
-  maxSteps: 7
   autoPlayInterval: 2
 --- !u!114 &1099160862
 MonoBehaviour:
@@ -2332,6 +2332,18 @@ MonoBehaviour:
   orbitRadiusText: {fileID: 27549341}
   orbitRadiusSlider: {fileID: 1956594530}
   speedSlider: {fileID: 16106465}
+--- !u!114 &1099160863
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1099160858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6f72fb6f1798004e9c3d6fed9b436db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TurtleInterpreter
 --- !u!1 &1216886536
 GameObject:
   m_ObjectHideFlags: 0
@@ -2898,9 +2910,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::OrbitParent
   radius: 6
   orbitSpeed: 2
-  randomizeBegginingValue: 0
-  useYValue: 0
-  yValueMultiplier: 3
 --- !u!1 &1604536853
 GameObject:
   m_ObjectHideFlags: 0
@@ -3444,9 +3453,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::OrbitParent
   radius: 3
   orbitSpeed: 4
-  randomizeBegginingValue: 0
-  useYValue: 0
-  yValueMultiplier: 3
 --- !u!4 &1882550637 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4034573194956583052, guid: 4cc632efc7506874db446e066c555d87, type: 3}
