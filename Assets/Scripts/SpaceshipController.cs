@@ -23,7 +23,7 @@ public class SpaceshipController : MonoBehaviour
     void Start()
     {
         if (lSystemTester == null)
-            lSystemTester = FindFirstObjectByType<LSystemTester>();
+            lSystemTester = FindAnyObjectByType<LSystemTester>();
 
         ResetShip();
     }
@@ -49,7 +49,7 @@ public class SpaceshipController : MonoBehaviour
         if (lSystemTester != null && lSystemTester.Config != null)
         {
             G = lSystemTester.Config.gravitationalConstant;
-            shipMass = Mathf.Max(0.001f, lSystemTester.Config.shipMass);
+            shipMass = Mathf.Max(0.001f, lSystemTester.Config.spaceshipMass);
         }
 
         // força gravitacional resultante de todos os astros com massa na cena
@@ -68,7 +68,7 @@ public class SpaceshipController : MonoBehaviour
     private Vector3 ComputeGravitationalForce(float G, float shipMass)
     {
         Vector3 netForce = Vector3.zero;
-        CelestialBody[] bodies = FindObjectsByType<CelestialBody>(FindObjectsSortMode.None);
+        CelestialBody[] bodies = FindObjectsByType<CelestialBody>();
 
         foreach (CelestialBody body in bodies)
         {
@@ -106,7 +106,7 @@ public class SpaceshipController : MonoBehaviour
     {
         float yaw = 0f;   // A / D (esquerda / direita)
         float pitch = 0f; // Setas Cima / Baixo (nariz cima / baixo)
-        float roll = 0f;  // Q / E (zoom)
+        float roll = 0f;  // Q / E (rolamento)
 
         if (Keyboard.current.dKey.isPressed) yaw += 1f;
         if (Keyboard.current.aKey.isPressed) yaw -= 1f;
