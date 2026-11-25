@@ -3407,33 +3407,22 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!1 &1069882820 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2000409495758424945, guid: c806130e0f9be3945ac6907d74b6cff4, type: 3}
-  m_PrefabInstance: {fileID: 7744295214449405230}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1069882821 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6213942752311701814, guid: c806130e0f9be3945ac6907d74b6cff4, type: 3}
   m_PrefabInstance: {fileID: 7744295214449405230}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1069882822
+--- !u!114 &1069882822 stripped
 MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 4159066707365557569, guid: c806130e0f9be3945ac6907d74b6cff4, type: 3}
+  m_PrefabInstance: {fileID: 7744295214449405230}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1069882820}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c344c0efaed2c41d2acdc799a03f6aeb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpaceshipController
-  lSystemTester: {fileID: 1099160861}
-  initialPosition: {x: 0, y: 10, z: -40}
-  thrustForce: 50
-  rotationSpeed: 90
-  minGravityDistance: 2
 --- !u!1 &1086472856
 GameObject:
   m_ObjectHideFlags: 0
@@ -3664,7 +3653,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 1000
+  far clip plane: 5000
   field of view: 60
   orthographic: 0
   orthographic size: 5
@@ -3759,9 +3748,9 @@ MonoBehaviour:
   followSpaceship: 0
   rotSpeed: 120
   mouseSensitivity: 0.25
-  zoomSpeed: 15
+  zoomSpeed: 100
   minDist: 5
-  maxDist: 50
+  maxDist: 2000
 --- !u!1 &1253370996
 GameObject:
   m_ObjectHideFlags: 0
@@ -6094,6 +6083,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Spaceship
       objectReference: {fileID: 0}
+    - target: {fileID: 4159066707365557569, guid: c806130e0f9be3945ac6907d74b6cff4, type: 3}
+      propertyPath: thrustForce
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 4159066707365557569, guid: c806130e0f9be3945ac6907d74b6cff4, type: 3}
+      propertyPath: lSystemTester
+      value: 
+      objectReference: {fileID: 1099160861}
     - target: {fileID: 6213942752311701814, guid: c806130e0f9be3945ac6907d74b6cff4, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -6137,10 +6134,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 2000409495758424945, guid: c806130e0f9be3945ac6907d74b6cff4, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1069882822}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c806130e0f9be3945ac6907d74b6cff4, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

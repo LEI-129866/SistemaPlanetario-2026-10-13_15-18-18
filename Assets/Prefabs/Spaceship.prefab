@@ -236,6 +236,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6213942752311701814}
+  - component: {fileID: 4159066707365557569}
   m_Layer: 0
   m_Name: Spaceship
   m_TagString: Untagged
@@ -263,6 +264,23 @@ Transform:
   - {fileID: 104869912839059493}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4159066707365557569
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000409495758424945}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c344c0efaed2c41d2acdc799a03f6aeb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpaceshipController
+  lSystemTester: {fileID: 0}
+  initialPosition: {x: 0, y: 10, z: -40}
+  thrustForce: 50
+  rotationSpeed: 90
+  minGravityDistance: 2
 --- !u!1 &3091290638743472667
 GameObject:
   m_ObjectHideFlags: 0
