@@ -116,7 +116,7 @@ public class UIManager : MonoBehaviour
 
         if (cameraButtonText != null && rotateCamera != null)
         {
-            cameraButtonText.text = rotateCamera.IsFollowingSpaceship ? "Câmara: Nave" : "Câmara: Sistema";
+            cameraButtonText.text = rotateCamera.IsFollowingSpaceship ? "Camara: Nave" : "Camara: Sistema";
         }
 
         if (shipTelemetryText != null && spaceshipController != null)
