@@ -3545,7 +3545,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ca7475da1f5040559a0cdb472d33072, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LSystemTester
-  configFileName: exemplo1.txt
+  configFileName: exemplo2.txt
   lSystemSeed: 42
   orbitPhaseSeed: 123
   useRandomInitialPhase: 1
