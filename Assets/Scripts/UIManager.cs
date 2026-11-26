@@ -38,7 +38,7 @@ public class UIManager : MonoBehaviour
         if (speedSlider != null)
         {
             speedSlider.minValue = 1f;
-            speedSlider.maxValue = 10000f;
+            speedSlider.maxValue = 50f;
             speedSlider.value = lSystemTester != null ? lSystemTester.TimeScaleMultiplier : 1f;
             speedSlider.onValueChanged.AddListener(OnSpeedChanged);
             OnSpeedChanged(speedSlider.value);
